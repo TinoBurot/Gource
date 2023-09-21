@@ -204,7 +204,8 @@ void Gource::writeCustomLog(const std::string& logfile, const std::string& outpu
 
         for(std::list<RCommitFile>::iterator it = commit.files.begin(); it != commit.files.end(); it++) {
             RCommitFile& cf = *it;
-            fprintf(fh, "%lld|%s|%s|%s\n", (long long int) commit.timestamp, commit.username.c_str(), cf.action.c_str(), cf.filename.c_str());
+            fprintf(fh, "%lld|%s|%s|%s|%lu|%llu|%lu|%lu\n", (long long int) commit.timestamp, commit.username.c_str(), cf.action.c_str(), cf.filename.c_str(),
+                (unsigned long int) cf.lineCount, (unsigned long long int) cf.charCount, (unsigned long int) cf.addedLineCount, (unsigned long int) cf.removedLineCount);
         }
 
         commit.files.clear();

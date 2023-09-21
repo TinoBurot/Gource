@@ -88,9 +88,9 @@ void GitCommitLog::readGitVersion() {
 std::string GitCommitLog::logCommand() {
 
     std::string log_command = "git log "
-    "--pretty=format:user:%aN%n%ct "
+    "--pretty=format:user:%aN%n%ct%n%H "
     "--reverse --raw --encoding=UTF-8 "
-    "--no-renames";
+    "--no-renames --numstat";
 
     readGitVersion();
 
@@ -188,6 +188,42 @@ BaseLog* GitCommitLog::generateLog(const std::string& dir) {
     return seeklog;
 }
 
+void GitCommitLog::getFileSizeAtCommit(const std::string& commitHash, const std::string& filename, unsigned long int& lineCount, unsigned long long int& charCount) {
+
+    std::ostringstream oss;
+    oss << "git show " << commitHash << ":" << filename;
+    std::string show_command = oss.str();
+
+    std::string showed_file;
+    createTempFile(showed_file);
+
+    show_command += " > " + showed_file;
+
+    systemCommand(show_command.c_str());
+
+    SeekLog seekFile(showed_file);
+
+    lineCount = 0;
+    charCount = 0;
+
+    std::string line;
+    while(seekFile.getNextLine(line) && !seekFile.isFinished()) {
+
+        if(line.size()) {
+
+            ++lineCount;
+
+            for (char c : line) {
+                if (c != ' ' && c != '\n' && c != '\r' && c != '\t') {
+                    ++charCount;
+                }
+            }
+        }
+    }
+
+    remove(showed_file.c_str());
+}
+
 // parse modified git format log entries
 
 bool GitCommitLog::parseCommit(RCommit& commit) {
@@ -195,6 +231,12 @@ bool GitCommitLog::parseCommit(RCommit& commit) {
     std::string line;
 
     commit.username = "";
+
+    unsigned long int fileNum;
+    std::string firstFile = "";
+    bool isNumstat = false;
+
+    std::vector<RCommitFile> files;
 
     while(logf->getNextLine(line) && line.size()) {
 
@@ -210,30 +252,68 @@ bool GitCommitLog::parseCommit(RCommit& commit) {
             //this isnt a commit we are parsing, abort
             if(commit.timestamp == 0) return false;
 
+            if(!logf->getNextLine(line)) return false;
+
+            commit.hash = line;
+
             continue;
         }
 
         //should see username before files
         if(commit.username.empty()) return false;
 
-        size_t tab = line.find('\t');
+        size_t fileOffset = line.rfind('\t');
 
         //incorrect log format
-        if(tab == std::string::npos || tab == 0 || tab == line.size()-1) continue;
+        if(fileOffset == std::string::npos || fileOffset == 0 || fileOffset == line.size()-1) continue;
 
-        std::string status = line.substr(tab - 1, 1);
-        std::string file   = line.substr(tab + 1);
+        std::string file = line.substr(fileOffset + 1);
 
         if(file.empty()) continue;
 
-        //check for and remove double quotes
-        if(file.find('"') == 0 && file.rfind('"') == file.size()-1) {
-            if(file.size()<=2) continue;
-
-            file = file.substr(1,file.size()-2);
+        if(file == firstFile) {
+            isNumstat = true;
+            fileNum = 0;
         }
 
-        commit.addFile(file, status);
+        if(!isNumstat) {
+            
+            if(fileNum == 0) {
+                firstFile = file;
+            }
+
+             //check for and remove double quotes
+            if(file.find('"') == 0 && file.rfind('"') == file.size()-1) {
+                if(file.size()<=2) continue;
+
+                file = file.substr(1,file.size()-2);
+            }
+
+            std::string status = line.substr(fileOffset - 1, 1);
+
+            files.push_back(RCommitFile(file, status, vec3()));
+        }
+        else {
+
+            size_t removedOffset = line.find('\t');
+            unsigned long int addedLineCount = atol(line.substr(0, removedOffset).c_str());
+            unsigned long int removedLineCount = atol(line.substr(removedOffset + 1, fileOffset - (removedOffset + 1)).c_str());
+
+            unsigned long int lineCount;
+            unsigned long long int charCount;
+            getFileSizeAtCommit(commit.hash, file, lineCount, charCount);
+
+            files[fileNum].lineCount = lineCount;
+            files[fileNum].charCount = charCount;
+            files[fileNum].addedLineCount = addedLineCount;
+            files[fileNum].removedLineCount = removedLineCount;
+        }
+        
+        ++fileNum;
+    }
+
+    for (RCommitFile& file : files) {
+        commit.addFile(file.filename, file.action, file.lineCount, file.charCount, file.addedLineCount, file.removedLineCount);
     }
 
     //check we at least got a username

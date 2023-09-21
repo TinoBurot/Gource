@@ -296,8 +296,26 @@ RCommitFile::RCommitFile(const std::string& filename, const std::string& action,
         this->filename.insert(0, 1, '/');
     }
 
-    this->action   = action;
-    this->colour   = colour;
+    this->action = action;
+    this->colour = colour;
+
+    this->lineCount = 0;
+    this->charCount = 0;
+
+    this->addedLineCount = 0;
+    this->removedLineCount = 0;
+}
+
+RCommitFile::RCommitFile(const std::string& filename, const std::string& action, vec3 colour, unsigned long int lineCount, unsigned long long int charCount,
+    unsigned long int addedLineCount, unsigned long int removedLineCount) {
+
+    RCommitFile(filename, action, colour);
+
+    this->lineCount = lineCount;
+    this->charCount = charCount;
+
+    this->addedLineCount = addedLineCount;
+    this->removedLineCount = removedLineCount;
 }
 
 RCommit::RCommit() {
@@ -323,6 +341,16 @@ void RCommit::addFile(const std::string& filename, const std::string& action) {
 }
 
 void RCommit::addFile(const std::string& filename, const  std::string& action, const vec3& colour) {
+    addFile(filename, action, colour, 0, 0, 0, 0);
+}
+
+void RCommit::addFile(const std::string& filename, const std::string& action, unsigned long int lineCount, unsigned long long int charCount,
+        unsigned long int addedLineCount, unsigned long int removedLineCount) {
+    addFile(filename, action, fileColour(filename), lineCount, charCount, addedLineCount, removedLineCount);
+}
+
+void RCommit::addFile(const std::string& filename, const std::string& action, const vec3& colour, unsigned long int lineCount, unsigned long long int charCount,
+        unsigned long int addedLineCount, unsigned long int removedLineCount) {
     //check filename against filters
     if(!gGourceSettings.file_filters.empty()) {
 
@@ -347,7 +375,7 @@ void RCommit::addFile(const std::string& filename, const  std::string& action, c
         }
     }
 
-    files.push_back(RCommitFile(filename, action, colour));
+    files.push_back(RCommitFile(filename, action, colour, lineCount, charCount, addedLineCount, removedLineCount));
 }
 
 void RCommit::postprocess() {

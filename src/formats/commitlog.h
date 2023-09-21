@@ -36,7 +36,15 @@ public:
     std::string action;
     vec3 colour;
 
+    unsigned long int lineCount;
+    unsigned long long int charCount;
+
+    unsigned long int addedLineCount;
+    unsigned long int removedLineCount;
+
     RCommitFile(const std::string& filename, const std::string& action, vec3 colour);
+    RCommitFile(const std::string& filename, const std::string& action, vec3 colour, unsigned long int lineCount, unsigned long long int charCount,
+        unsigned long int addedLineCount, unsigned long int removedLineCount);
 };
 
 class RCommit {
@@ -44,6 +52,7 @@ class RCommit {
 public:
     time_t timestamp;
     std::string username;
+    std::string hash;
 
     std::list<RCommitFile> files;
 
@@ -52,6 +61,10 @@ public:
 
     void addFile(const std::string& filename, const std::string& action);
     void addFile(const std::string& filename, const std::string& action, const vec3& colour);
+    void addFile(const std::string& filename, const std::string& action, unsigned long int lineCount, unsigned long long int charCount,
+        unsigned long int addedLineCount, unsigned long int removedLineCount);
+    void addFile(const std::string& filename, const std::string& action, const vec3& colour, unsigned long int lineCount, unsigned long long int charCount,
+        unsigned long int addedLineCount, unsigned long int removedLineCount);
 
     RCommit();
     void debug();

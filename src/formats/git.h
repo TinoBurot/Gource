@@ -22,6 +22,7 @@
 
 class GitCommitLog : public RCommitLog {
 protected:
+    void getFileSizeAtCommit(const std::string& commitHash, const std::string& filename, unsigned long int& lineCount, unsigned long long int& charCount);
     bool parseCommit(RCommit& commit);
     BaseLog* generateLog(const std::string& dir);
     static void readGitVersion();
