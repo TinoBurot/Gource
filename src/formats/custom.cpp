@@ -18,7 +18,7 @@
 #include "custom.h"
 #include "../gource_settings.h"
 
-Regex custom_regex("^(?:\\xEF\\xBB\\xBF)?([^|]+)\\|([^|]*)\\|([ADM]?)\\|([^|]+)(?:\\|#?([a-fA-F0-9]{6}))?");
+Regex custom_regex("^(?:\\xEF\\xBB\\xBF)?([^|]+)\\|([^|]*)\\|([ADM]?)\\|([^|]+)(?:\\|#?([a-fA-F0-9]{6}))?\\|(\\d+)\\|(\\d+)\\|(\\d+)\\|(\\d+)");
 
 CustomLog::CustomLog(const std::string& logfile) : RCommitLog(logfile) {
 }
@@ -91,10 +91,15 @@ bool CustomLog::parseCommitEntry(RCommit& commit) {
         colour = parseColour(entries[4]);
     }
 
+    unsigned long int lineCount = atol(entries[5].c_str());
+    unsigned long long int charCount = atoll(entries[6].c_str());
+    unsigned long int addedLineCount = atol(entries[7].c_str());
+    unsigned long int removedLineCount = atol(entries[8].c_str());
+
     if(has_colour) {
-        commit.addFile(entries[3], action, colour);
+        commit.addFile(entries[3], action, colour, lineCount, charCount, addedLineCount, removedLineCount);
     } else {
-        commit.addFile(entries[3], action);
+        commit.addFile(entries[3], action, lineCount, charCount, addedLineCount, removedLineCount);
     }
 
     return true;
