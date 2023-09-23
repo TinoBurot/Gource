@@ -307,9 +307,7 @@ RCommitFile::RCommitFile(const std::string& filename, const std::string& action,
 }
 
 RCommitFile::RCommitFile(const std::string& filename, const std::string& action, vec3 colour, unsigned long int lineCount, unsigned long long int charCount,
-    unsigned long int addedLineCount, unsigned long int removedLineCount) {
-
-    RCommitFile(filename, action, colour);
+    unsigned long int addedLineCount, unsigned long int removedLineCount) :  RCommitFile(filename, action, colour) {
 
     this->lineCount = lineCount;
     this->charCount = charCount;

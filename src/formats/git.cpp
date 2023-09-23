@@ -209,14 +209,11 @@ void GitCommitLog::getFileSizeAtCommit(const std::string& commitHash, const std:
     std::string line;
     while(seekFile.getNextLine(line) && !seekFile.isFinished()) {
 
-        if(line.size()) {
+        ++lineCount;
 
-            ++lineCount;
-
-            for (char c : line) {
-                if (c != ' ' && c != '\n' && c != '\r' && c != '\t') {
-                    ++charCount;
-                }
+        for (char c : line) {
+            if (c != ' ' && c != '\n' && c != '\r' && c != '\t') {
+                ++charCount;
             }
         }
     }
@@ -232,7 +229,7 @@ bool GitCommitLog::parseCommit(RCommit& commit) {
 
     commit.username = "";
 
-    unsigned long int fileNum;
+    unsigned long int fileNum = 0;
     std::string firstFile = "";
     bool isNumstat = false;
 
@@ -295,6 +292,19 @@ bool GitCommitLog::parseCommit(RCommit& commit) {
         }
         else {
 
+            if (files[fileNum].action == "D")
+            {
+                // File was deleted in that commit
+                continue;
+            }
+
+            if (files[fileNum].filename.find('.') == std::string::npos)
+            {
+                // File has no extension (e.g. submodule) so probably not showable
+                continue;
+            }
+            
+            
             size_t removedOffset = line.find('\t');
             unsigned long int addedLineCount = atol(line.substr(0, removedOffset).c_str());
             unsigned long int removedLineCount = atol(line.substr(removedOffset + 1, fileOffset - (removedOffset + 1)).c_str());
