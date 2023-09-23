@@ -57,7 +57,7 @@ public:
     std::string fullpath;
     std::string ext;
 
-    RFile(const std::string & name, const vec3 & colour, const vec2 & pos, int tagid);
+    RFile(const std::string & name, const vec3 & colour, const vec2 & pos, int tagid, float sizeMultiplier);
     ~RFile();
 
     bool overlaps(const vec2& pos) const;

@@ -24,9 +24,9 @@ std::vector<RFile*> gGourceRemovedFiles;
 FXFont file_selected_font;
 FXFont file_font;
 
-RFile::RFile(const std::string & name, const vec3 & colour, const vec2 & pos, int tagid) : Pawn(name,pos,tagid) {
+RFile::RFile(const std::string & name, const vec3 & colour, const vec2 & pos, int tagid, float sizeMultiplier) : Pawn(name,pos,tagid) {
     hidden = true;
-    size = gGourceFileDiameter * 1.05;
+    size = gGourceFileDiameter * sizeMultiplier;
     radius = size * 0.5;
 
     setGraphic(gGourceSettings.file_graphic);
