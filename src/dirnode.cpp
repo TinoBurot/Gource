@@ -922,10 +922,15 @@ void RDirNode::updateFilePositions() {
         vec2 nearestPos = nearestFile->getDest();
         float distToNearest = nearestFile->getRadius() + radius;
 
-        vec2 oppSideDir = normalize(nearestPos - prevPos);
+        vec2 oppSide = nearestPos - prevPos;
+        float d = length(oppSide);
+        float a = (pow(distToPrev, 2) - pow(distToNearest, 2) + pow(d, 2)) / (2 * d);
+        float h = sqrt(pow(distToPrev, 2) - pow(a, 2));
+
+        vec2 oppSideDir = normalize(oppSide);
         vec2 perpToOppSide = vec2(oppSideDir.y, -oppSideDir.x);
 
-        vec2 fPos = prevPos + oppSideDir * distToPrev + perpToOppSide * distToNearest;
+        vec2 fPos = prevPos + oppSideDir * a + perpToOppSide * h;
 
         // Set the file coordinates
         f->setDest(fPos);
