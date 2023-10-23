@@ -73,7 +73,11 @@ public:
 
     void setHidden(bool hidden);
 
+    float getRadius(){ return radius; }
+
+    vec2 getDest(){ return dest; }
     void setDest(const vec2 & dest){ this->dest = dest; }
+    float getDistance(){ return distance; }
     void setDistance(float distance){ this->distance = distance; }
 
     void calcScreenPos(GLint* viewport, GLdouble* modelview, GLdouble* projection);

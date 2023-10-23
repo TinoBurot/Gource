@@ -94,6 +94,7 @@ class RDirNode : public QuadItem {
     void move(float dt);
 
     vec2 calcFileDest(int layer_no, int file_no);
+    float traceFile(const vec2& startPos, const vec2& fileCenter, float fileRadius);
     void updateFilePositions();
 
     void adjustDepth();

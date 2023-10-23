@@ -16,6 +16,7 @@
 */
 
 #include "dirnode.h"
+#include <algorithm>
 
 float gGourceMinDirSize   = 15.0;
 
@@ -839,8 +840,94 @@ vec2 RDirNode::calcFileDest(int max_files, int file_no) {
     return dest;
 }
 
-void RDirNode::updateFilePositions() {
+float RDirNode::traceFile(const vec2& startPos, const vec2& fileCenter, float fileRadius)
+{
+    vec2 rayDir = -normalize(startPos);
+    float fileProj = dot(fileCenter, rayDir);
+    vec2 nearestToFile = startPos + rayDir * fileProj;
+    float distToFile = length(fileCenter - nearestToFile);
+    if (distToFile <= fileRadius) {
+        return fileProj;
+    }
+    return -1.f;
+}
 
+void RDirNode::updateFilePositions() {
+    if (files.empty()) {
+        return;
+    }
+
+    // Create a vector to hold the files and sort them by radius in descending order
+    std::vector<RFile*> fileVector;
+    for (std::list<RFile*>::iterator it = files.begin(); it != files.end(); it++) {
+        RFile* f = *it;
+        fileVector.push_back(f);
+    }
+
+    std::sort(fileVector.begin(), fileVector.end(), [](RFile* a, RFile* b) {
+        return a->getRadius() > b->getRadius();
+    });
+
+    // Place the biggest file at center
+    RFile* biggest = fileVector[0];
+    biggest->setDest(vec2(0.f, 0.f));
+    biggest->setDistance(0.f);
+
+    float padding = .1f;
+
+    // Then place the second biggest file tangent to the first one
+    if (fileVector.size() >= 2) {
+        RFile* secondBiggest = fileVector[1];
+        float distToBiggest = biggest->getRadius() + secondBiggest->getRadius() + padding;
+        secondBiggest->setDest(vec2(0.f, -distToBiggest));
+        secondBiggest->setDistance(1.f);
+    }
+
+    // Starting from the third one
+    for (int i = 2; i < fileVector.size(); i++) {
+        RFile* f = fileVector[i];
+        float radius = f->getRadius() + padding;
+
+        // Find a temp position clockwise, tangent to the previous file
+        RFile* prevFile =  fileVector[i - 1];
+        vec2 prevPos = prevFile->getDest();
+        vec2 prevDir = normalize(prevPos);
+        vec2 rightVector = vec2(-prevDir.y, prevDir.x);
+        float distToPrev = prevFile->getRadius() + radius;
+        vec2 tempPos = prevPos + rightVector * distToPrev;
+
+        // Trace files from tempPos and keep the nearest hit file
+        float nearestHit = 100000.f;
+        RFile* nearestFile;
+        for (int j = 0; j < i - 1; j++) {
+            RFile* file = fileVector[j];
+            vec2 filePos = file->getDest() * file->getDistance();
+            float hit = traceFile(tempPos, filePos, file->getRadius());
+            if (hit >= 0.f && hit < nearestHit) {
+                nearestHit = hit;
+                nearestFile = file;
+            }
+        }
+
+        // Solve the triangle with prevPos, nearestPos and the distances to both
+        vec2 nearestPos = nearestFile->getDest() * nearestFile->getDistance();
+        float distToNearest = nearestFile->getRadius() + radius;
+
+        vec2 oppSideDir = normalize(nearestPos - prevPos);
+        vec2 perpToOppSide = vec2(-oppSideDir.y, oppSideDir.x);
+
+        vec2 fPos = prevPos + oppSideDir * distToPrev + perpToOppSide * distToNearest;
+
+        // Set the file coordinates
+        f->setDest(normalise(fPos));
+        f->setDistance(fPos.length());
+
+        // DEBUG
+        f->setDest(tempPos);
+        f->setDistance(1.f);
+    }
+
+#if 0 // Old code
     int max_files = 1;
     int diameter  = 1;
     int file_no   = 0;
@@ -877,6 +964,7 @@ void RDirNode::updateFilePositions() {
             file_no=0;
         }
     }
+#endif
 }
 
 void RDirNode::calcEdges() {
