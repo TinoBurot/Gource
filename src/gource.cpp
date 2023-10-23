@@ -1004,7 +1004,9 @@ RFile* Gource::addFile(const RCommitFile& cf) {
     int tagid = tag_seq++;
 
     float sizeMultiplier = 1.05f; // original multiplier found in RFile constructor
-    sizeMultiplier += cf.charCount / 1000.f;
+    double fileWeight = cf.charCount;
+    // fileWeight = (float)rand() / RAND_MAX * 500000.f; // TEST
+    sizeMultiplier += pow(fileWeight, 1.0 / 3) / 10.f;
 
     RFile* file = new RFile(cf.filename, cf.colour, vec2(0.0,0.0), tagid, sizeMultiplier);
 

@@ -578,7 +578,7 @@ void RDirNode::calcRadius() {
     for(std::list<RFile*>::iterator it = files.begin(); it != files.end(); it++) {
         RFile* f = *it;
         if (!f->isHidden()) {
-            total_file_area += f->getRadius() * f->getRadius() * PI;
+            total_file_area += f->getRadius() * f->getRadius() * PI * .75f; // personnal preference
         }
     }
 
@@ -860,15 +860,22 @@ float RDirNode::traceFile(const vec2& startPos, const vec2& fileCenter, float fi
 }
 
 void RDirNode::updateFilePositions() {
-    if (files.empty()) {
-        return;
-    }
-
     // Create a vector to hold the files and sort them by radius in descending order
     std::vector<RFile*> fileVector;
     for (std::list<RFile*>::iterator it = files.begin(); it != files.end(); it++) {
         RFile* f = *it;
+
+        if(f->isHidden()) {
+            f->setDest(vec2(0.0,0.0));
+            f->setDistance(0.0f);
+            continue;
+        }
+
         fileVector.push_back(f);
+    }
+
+    if (fileVector.empty()) {
+        return;
     }
 
     std::sort(fileVector.begin(), fileVector.end(), [](RFile* a, RFile* b) {
@@ -880,7 +887,7 @@ void RDirNode::updateFilePositions() {
     biggest->setDest(vec2(0.f, 0.f));
     biggest->setDistance(0.f);
 
-    float padding = 16.f;
+    float padding = biggest->getRadius();
 
     // Then place the second biggest file tangent to the first one
     if (fileVector.size() >= 2) {
@@ -933,45 +940,6 @@ void RDirNode::updateFilePositions() {
         f->setDest(fPos);
         f->setDistance(1.f);
     }
-
-#if 0 // Old code
-    int max_files = 1;
-    int diameter  = 1;
-    int file_no   = 0;
-    float d = 0.0;
-
-    int files_left = visible_count;
-
-    for(std::list<RFile*>::iterator it = files.begin(); it!=files.end(); it++) {
-        RFile* f = *it;
-
-        if(f->isHidden()) {
-            f->setDest(vec2(0.0,0.0));
-            f->setDistance(0.0f);
-            continue;
-        }
-
-        vec2 dest = calcFileDest(max_files, file_no);
-
-        f->setDest(dest);
-        f->setDistance(d);
-
-        files_left--;
-        file_no++;
-
-        if(file_no>=max_files) {
-            diameter++;
-            d += gGourceFileDiameter;
-            max_files = (int) std::max(1.0, diameter*PI);
-
-            if(files_left<max_files) {
-                max_files = files_left;
-            }
-
-            file_no=0;
-        }
-    }
-#endif
 }
 
 void RDirNode::calcEdges() {
