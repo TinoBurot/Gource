@@ -574,7 +574,13 @@ float RDirNode::getArea() const{
 
 void RDirNode::calcRadius() {
 
-    float total_file_area = file_area * visible_count;
+    float total_file_area = 0.f;
+    for(std::list<RFile*>::iterator it = files.begin(); it != files.end(); it++) {
+        RFile* f = *it;
+        if (!f->isHidden()) {
+            total_file_area += f->getRadius() * f->getRadius() * PI;
+        }
+    }
 
     dir_area = total_file_area;
 
@@ -909,21 +915,20 @@ void RDirNode::updateFilePositions() {
             }
         }
 
+        //DEBUG
+        nearestFile = fileVector[0];
+
         // Solve the triangle with prevPos, nearestPos and the distances to both
-        vec2 nearestPos = nearestFile->getDest() * nearestFile->getDistance();
+        vec2 nearestPos = nearestFile->getDest();
         float distToNearest = nearestFile->getRadius() + radius;
 
         vec2 oppSideDir = normalize(nearestPos - prevPos);
-        vec2 perpToOppSide = vec2(-oppSideDir.y, oppSideDir.x);
+        vec2 perpToOppSide = vec2(oppSideDir.y, -oppSideDir.x);
 
         vec2 fPos = prevPos + oppSideDir * distToPrev + perpToOppSide * distToNearest;
 
         // Set the file coordinates
-        f->setDest(normalise(fPos));
-        f->setDistance(fPos.length());
-
-        // DEBUG
-        f->setDest(tempPos);
+        f->setDest(fPos);
         f->setDistance(1.f);
     }
 
