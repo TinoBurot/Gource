@@ -24,9 +24,9 @@ std::vector<RFile*> gGourceRemovedFiles;
 FXFont file_selected_font;
 FXFont file_font;
 
-RFile::RFile(const std::string & name, const vec3 & colour, const vec2 & pos, int tagid, float sizeMultiplier) : Pawn(name,pos,tagid) {
+RFile::RFile(const std::string & name, const vec3 & colour, const vec2 & pos, int tagid) : Pawn(name,pos,tagid) {
     hidden = true;
-    size = gGourceFileDiameter * sizeMultiplier;
+    size = gGourceFileDiameter * 1.05f;
     radius = size * 0.5;
 
     setGraphic(gGourceSettings.file_graphic);
@@ -50,6 +50,9 @@ RFile::RFile(const std::string & name, const vec3 & colour, const vec2 & pos, in
     distance = 0;
 
     setFilename(name);
+
+    charCount = 0;
+    lineCount = 0;
 
     if(!file_selected_font.initialized()) {
         file_selected_font = fontmanager.grab(gGourceSettings.font_file, 18);
@@ -139,6 +142,20 @@ void RFile::colourize() {
 
 const vec3& RFile::getNameColour() const{
     return selected ? gGourceSettings.selection_colour : namecol;
+}
+
+void RFile::setFileSize(const RCommitFile& cf)
+{
+    charCount = cf.charCount;
+    lineCount = cf.lineCount;
+
+    float sizeMultiplier = 1.05f; // original multiplier found in RFile constructor
+    double fileWeight = charCount;
+    // fileWeight = (float)rand() / RAND_MAX * 500000.f; // TEST
+    sizeMultiplier += pow(fileWeight, 1.0 / 3) / 10.f;
+    size = gGourceFileDiameter * sizeMultiplier;
+    radius = size * 0.5;
+    setGraphic(gGourceSettings.file_graphic);
 }
 
 void RFile::setFileColour(const vec3 & colour) {

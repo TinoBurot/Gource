@@ -20,6 +20,7 @@
 
 #include "pawn.h"
 #include "dirnode.h"
+#include "formats/commitlog.h"
 #include "core/stringhash.h"
 
 class RDirNode;
@@ -57,10 +58,15 @@ public:
     std::string fullpath;
     std::string ext;
 
-    RFile(const std::string & name, const vec3 & colour, const vec2 & pos, int tagid, float sizeMultiplier);
+    unsigned long int lineCount;
+    unsigned long long int charCount;
+
+    RFile(const std::string & name, const vec3 & colour, const vec2 & pos, int tagid);
     ~RFile();
 
     bool overlaps(const vec2& pos) const;
+
+    void setFileSize(const RCommitFile& cf);
 
     void setFileColour(const vec3 & colour);
     const vec3 & getFileColour() const;

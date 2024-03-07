@@ -16,6 +16,7 @@
 */
 
 #include "action.h"
+#include "formats/commitlog.h"
 
 RAction::RAction(RUser* source, RFile* target, time_t timestamp, float t, const vec3& colour)
     : colour(colour), source(source), target(target), timestamp(timestamp), t(t), progress(0.0f), rate(0.5f) {
@@ -116,11 +117,12 @@ void RemoveAction::logic(float dt) {
     }
 }
 
-ModifyAction::ModifyAction(RUser* source, RFile* target, time_t timestamp, float t, const vec3& modify_colour)
-    : RAction(source, target, timestamp, t, vec3(1.0f, 0.7f, 0.3f)), modify_colour(modify_colour) {
+ModifyAction::ModifyAction(RUser* source, RFile* target, time_t timestamp, float t, const RCommitFile& cf)
+    : RAction(source, target, timestamp, t, vec3(1.0f, 0.7f, 0.3f)), modify_colour(cf.colour), commitFile(cf) {
 }
 
 void ModifyAction::apply() {
     RAction::apply();
     target->setFileColour(modify_colour);
+    target->setFileSize(commitFile);
 }

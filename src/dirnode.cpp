@@ -16,6 +16,7 @@
 */
 
 #include "dirnode.h"
+#include "gource.h"
 #include <algorithm>
 
 float gGourceMinDirSize   = 15.0;
@@ -1107,6 +1108,9 @@ void RDirNode::updateFilesVBO(quadbuf& buffer, float dt) const{
             float alpha = f->getAlpha();
 
             buffer.add(f->graphic->textureid, f->getAbsolutePos() - f->dims*0.5f, f->dims, vec4(col.x, col.y, col.z, alpha));
+
+            gGource->totalCharCount += f->charCount;
+            gGource->totalLineCount += f->lineCount;
         }
     }
 

@@ -244,6 +244,7 @@ Gource* GourceShell::getNext() {
 
     // replace gource
     gource = new Gource(exporter);
+    gGource = gource;
 
     next = false;
 

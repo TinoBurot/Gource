@@ -64,8 +64,9 @@ public:
 class ModifyAction : public RAction {
 protected:
     vec3 modify_colour;
+    const RCommitFile commitFile;
 public:
-    ModifyAction(RUser* source, RFile* target, time_t timestamp, float t, const vec3& modify_colour);
+    ModifyAction(RUser* source, RFile* target, time_t timestamp, float t, const RCommitFile& cf);
 
     void apply();
 };

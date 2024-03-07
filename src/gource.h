@@ -261,6 +261,10 @@ class Gource : public SDLApp {
 
     void grabMouse(bool grab_mouse);
 public:
+    unsigned long long totalCharCount;
+    unsigned long totalLineCount;
+    unsigned int totalCommitCount;
+
     Gource(FrameExporter* frameExporter = 0);
     ~Gource();
 
@@ -292,5 +296,7 @@ public:
     void mouseWheel(SDL_MouseWheelEvent *e);
 #endif
 };
+
+extern Gource* gGource;
 
 #endif

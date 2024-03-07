@@ -24,6 +24,8 @@ int   gGourceMaxQuadTreeDepth = 6;
 
 int gGourceUserInnerLoops = 0;
 
+Gource* gGource = nullptr;
+
 Gource::Gource(FrameExporter* exporter) {
 
     this->logfile = gGourceSettings.path;
@@ -138,6 +140,8 @@ Gource::Gource(FrameExporter* exporter) {
 
     date_x_offset = 0;
     starting_z = -300.0f;
+
+    totalCommitCount = 0;
 
     textbox = TextBox(fontmanager.grab(gGourceSettings.font_file, 18 * gGourceSettings.font_scale));
     textbox.setBrightness(0.5f);
@@ -260,6 +264,10 @@ void Gource::update(float t, float dt) {
     if(!paused) runtime += scaled_dt;
 
     if(gGourceSettings.stop_at_time > 0.0 && runtime >= gGourceSettings.stop_at_time) stop_position_reached = true;
+
+    //reset stat counters
+    totalCharCount = 0;
+    totalLineCount = 0;
 
     logic_time = SDL_GetTicks();
 
@@ -958,6 +966,8 @@ void Gource::reset() {
     subseconds=0.0;
     tag_seq = 1;
     commit_seq = 1;
+
+    totalCommitCount = 0;
 }
 
 void Gource::deleteFile(RFile* file) {
@@ -1003,12 +1013,8 @@ RFile* Gource::addFile(const RCommitFile& cf) {
 
     int tagid = tag_seq++;
 
-    float sizeMultiplier = 1.05f; // original multiplier found in RFile constructor
-    double fileWeight = cf.charCount;
-    // fileWeight = (float)rand() / RAND_MAX * 500000.f; // TEST
-    sizeMultiplier += pow(fileWeight, 1.0 / 3) / 10.f;
-
-    RFile* file = new RFile(cf.filename, cf.colour, vec2(0.0,0.0), tagid, sizeMultiplier);
+    RFile* file = new RFile(cf.filename, cf.colour, vec2(0.0,0.0), tagid);
+    file->setFileSize(cf);
 
     files[cf.filename] = file;
 
@@ -1288,7 +1294,7 @@ void Gource::addFileAction(const RCommit& commit, const RCommitFile& cf, RFile* 
         if(cf.action == "A") {
             userAction = new CreateAction(user, file, commit.timestamp, t);
         } else {
-            userAction = new ModifyAction(user, file, commit.timestamp, t, cf.colour);
+            userAction = new ModifyAction(user, file, commit.timestamp, t, cf);
         }
     }
 
@@ -1775,6 +1781,8 @@ void Gource::logic(float t, float dt) {
         }
 
         subseconds = 0.0;
+
+        ++totalCommitCount;
 
         commitqueue.pop_front();
     }
@@ -2659,6 +2667,19 @@ void Gource::draw(float t, float dt) {
         fontmedium.alignTop(false);
         fontmedium.draw(10, display.height - 10, gGourceSettings.title);
         fontmedium.alignTop(true);
+    }
+
+    if(true) // gGourceSettings.show_stats
+    {
+        constexpr int lotrWordCount = 481103;
+        constexpr float avgCharPerEngWord = 4.79f;
+        constexpr float lotrCharCount = lotrWordCount * avgCharPerEngWord;
+        float lotrRatio = totalCharCount / lotrCharCount;
+        std::string lotrRatioString(16, '\0');
+        auto written = std::snprintf(&lotrRatioString[0], lotrRatioString.size(), "%.2f", lotrRatio);
+        lotrRatioString.resize(written);
+        std::string stats = std::to_string(totalLineCount) + " lines of code from " + std::to_string(totalCommitCount) + " commits (" + lotrRatioString + "x Lotr)";
+        fontmedium.draw(display.width/2 - fontmedium.getWidth(stats) * 0.5, 60, stats);
     }
 
     for(std::list<RCaption*>::iterator it = active_captions.begin(); it!=active_captions.end(); it++) {
