@@ -22,7 +22,7 @@
 float gGourceMinDirSize   = 15.0;
 
 float gGourceForceGravity = 10.0;
-float gGourceDirPadding   = 1.5;
+float gGourceDirPadding   = 1;
 
 bool  gGourceNodeDebug    = false;
 bool  gGourceGravity      = true;
@@ -579,7 +579,7 @@ void RDirNode::calcRadius() {
     for(std::list<RFile*>::iterator it = files.begin(); it != files.end(); it++) {
         RFile* f = *it;
         if (!f->isHidden()) {
-            total_file_area += f->getRadius() * f->getRadius() * PI * .75f; // personnal preference
+            total_file_area += f->getRadius() * f->getRadius() * PI * 2.f; // personnal preference
         }
     }
 
@@ -604,7 +604,7 @@ void RDirNode::calcRadius() {
 float RDirNode::distanceToParent() const{
 
     float posd     = glm::length(parent->getPos() - pos);
-    float distance = posd - (dir_radius + parent->getParentRadius());
+    float distance = posd - (dir_radius + parent->getParentRadius() * .1f);
 
     return distance;
 }
@@ -713,7 +713,7 @@ void RDirNode::applyForces(QuadTree & quadtree) {
         //parent circumfrence divided by the number of visible child nodes
         if(visible>1) {
             float slice_size = (parent->getRadius() * PI) / (float) (visible+1);
-            sib_accel *= slice_size;
+            sib_accel *= slice_size * 2.f;
 
             accel += sib_accel;
         }
