@@ -2738,6 +2738,7 @@ void Gource::draw(float t, float dt) {
 
         textbox.setText(hoverFile->getName());
         if(display_path.size()) textbox.addLine(display_path);
+        if(hoverFile->lineCount > 0) textbox.addLine(std::to_string(hoverFile->lineCount) + " lines");
         textbox.setColour(hoverFile->getColour());
 
         textbox.setPos(mousepos, true);
