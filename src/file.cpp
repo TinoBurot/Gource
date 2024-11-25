@@ -150,7 +150,7 @@ void RFile::setFileSize(const RCommitFile& cf)
     lineCount = cf.lineCount;
 
     float sizeMultiplier = 1.05f; // original multiplier found in RFile constructor
-    double fileWeight = charCount;
+    double fileWeight = lineCount * 100.f;
     // fileWeight = (float)rand() / RAND_MAX * 500000.f; // TEST
     sizeMultiplier += pow(fileWeight, 1.0 / 3) / 10.f;
     size = gGourceFileDiameter * sizeMultiplier;
