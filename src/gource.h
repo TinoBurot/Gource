@@ -265,6 +265,9 @@ public:
     unsigned long totalLineCount;
     unsigned int totalCommitCount;
 
+    std::string currentTag;
+    float tagSplash;
+
     Gource(FrameExporter* frameExporter = 0);
     ~Gource();
 

@@ -141,6 +141,7 @@ Gource::Gource(FrameExporter* exporter) {
     date_x_offset = 0;
     starting_z = -300.0f;
 
+    tagSplash = -1.f;
     totalCommitCount = 0;
 
     textbox = TextBox(fontmanager.grab(gGourceSettings.font_file, 18 * gGourceSettings.font_scale));
@@ -1205,6 +1206,14 @@ void Gource::processCommit(const RCommit& commit, float t) {
         const RCommitFile& cf = *it;
         RFile* file = 0;
 
+        if(cf.action == "TAG")
+        {
+            currentTag = cf.filename;
+            currentTag.erase(0, 1); // get rid of the slash
+            tagSplash = 3.f;
+            continue;
+        }
+
         //is this a directory (ends in slash)
         //deleting a directory - find directory: then for each file, remove each file
 
@@ -1586,6 +1595,7 @@ void Gource::logic(float t, float dt) {
 
     if(message_timer>0.0f) message_timer -= dt;
     if(splash>0.0f)        splash -= dt;
+    if(tagSplash>0.0f)     tagSplash -= dt;
 
     //init log file
     if(commitlog == 0) {
@@ -2680,6 +2690,29 @@ void Gource::draw(float t, float dt) {
         lotrRatioString.resize(written);
         std::string stats = std::to_string(totalLineCount) + " lines of code from " + std::to_string(totalCommitCount) + " commits (" + lotrRatioString + "x Lotr)";
         fontmedium.draw(display.width/2 - fontmedium.getWidth(stats) * 0.5, 60, stats);
+    }
+
+    if(tagSplash > 0.f) {
+        std::string happyTag = "`.!*' " + currentTag + " `*!.'";
+
+        int tagWidth = fontlarge.getWidth(happyTag);
+        int tagHeight = 100 * gGourceSettings.font_scale;
+
+        vec2 corner(display.width/2 - tagWidth/2 - 30.0f * gGourceSettings.font_scale, display.height/2 - 40 * gGourceSettings.font_scale);
+
+        glDisable(GL_TEXTURE_2D);
+        glColor4f(0.0f, 0.5f, 1.0f, tagSplash * 0.05f);
+        glBegin(GL_QUADS);
+            glVertex2f(0.0f,                 corner.y - tagHeight / 2);
+            glVertex2f(0.0f,                 corner.y + tagHeight);
+            glVertex2f(display.width, corner.y + tagHeight);
+            glVertex2f(display.width, corner.y - tagHeight / 2);
+        glEnd();
+
+        glEnable(GL_TEXTURE_2D);
+
+        fontlarge.setColour(vec4(1.0f));
+        fontlarge.draw(display.width/2 - tagWidth/2,display.height/2 - 30 * gGourceSettings.font_scale, happyTag);
     }
 
     for(std::list<RCaption*>::iterator it = active_captions.begin(); it!=active_captions.end(); it++) {

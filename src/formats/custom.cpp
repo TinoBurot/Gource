@@ -18,7 +18,7 @@
 #include "custom.h"
 #include "../gource_settings.h"
 
-Regex custom_regex("^(?:\\xEF\\xBB\\xBF)?([^|]+)\\|([^|]*)\\|([ADM]?)\\|([^|]+)(?:\\|#?([a-fA-F0-9]{6}))?\\|(\\d+)\\|(\\d+)\\|(\\d+)\\|(\\d+)");
+Regex custom_regex("^(?:\\xEF\\xBB\\xBF)?([^|]+)\\|([^|]*)\\|([ADM]?|TAG)\\|([^|]+)(?:\\|#?([a-fA-F0-9]{6}))?\\|(\\d+)\\|(\\d+)\\|(\\d+)\\|(\\d+)");
 
 CustomLog::CustomLog(const std::string& logfile) : RCommitLog(logfile) {
 }
